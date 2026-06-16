@@ -1,5 +1,6 @@
 FROM alpine:3.23
 
+ARG USERNAME=vscode
 
 RUN apk add --no-cache \
     bash \
@@ -9,7 +10,6 @@ RUN apk add --no-cache \
     jq \
     age
 
-ARG USERNAME=vscode
 RUN adduser -D -s /bin/bash $USERNAME
 
 WORKDIR /workspace

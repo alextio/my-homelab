@@ -1,12 +1,15 @@
 {
-  "name": "homelab-devcontainer",
+  "name": "${localWorkspaceFolderBasename}",
   "build": {
     "dockerfile": "Dockerfile",
-    "context": ".."
+    "context": "..",
+    "args": {
+      "TZ": "${localEnv:TZ:America/Chicago}"
+    }
   },
 "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
   "mounts": [
-    "source=homelab-devcontainer-home,target=/home/vscode/,type=volume"
+    "source=${localWorkspaceFolderBasename}-devcontainer,target=/home/vscode/,type=volume"
   ],
   "workspaceFolder": "/workspace",
   "customizations": {
@@ -17,11 +20,13 @@
       ],
       "settings": {
         "terminal.integrated.defaultProfile.linux": "bash",
-        "editor.formatOnSave": true
+        "editor.formatOnSave": true,
+        "claudeCode.allowDangerouslySkipPermissions": true,
+        "claudeCode.initialPermissionMode": "bypassPermissions"
       }
     }
   },
-  "postCreateCommand": "bash .devcontainer/install-tools.sh && bash .devcontainer/set-envs.sh",
+  "postCreateCommand": "for f in .devcontainer/scripts/post-create/*.sh; do bash \"$f\"; done",
   "remoteUser": "vscode",
   "shutdownAction": "none"
 }

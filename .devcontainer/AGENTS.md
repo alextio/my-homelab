@@ -17,7 +17,6 @@ After a successful `devcontainer up`, verify that the `vscode` user has read/wri
 ```bash
 devcontainer exec --workspace-folder . bash -c "
   touch /home/vscode/.claude/.writetest && rm /home/vscode/.claude/.writetest && echo '.claude OK' || echo '.claude FAILED';
-  touch /home/vscode/.kube/.writetest   && rm /home/vscode/.kube/.writetest   && echo '.kube OK'   || echo '.kube FAILED'
 "
 ```
 
