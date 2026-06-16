@@ -1,0 +1,27 @@
+{
+  "name": "homelab-devcontainer",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+"workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+  "mounts": [
+    "source=homelab-devcontainer-home,target=/home/vscode/,type=volume"
+  ],
+  "workspaceFolder": "/workspace",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "OpenTofu.vscode-opentofu",
+        "anthropic.claude-code"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "editor.formatOnSave": true
+      }
+    }
+  },
+  "postCreateCommand": "bash .devcontainer/install-tools.sh && bash .devcontainer/set-envs.sh",
+  "remoteUser": "vscode",
+  "shutdownAction": "none"
+}
