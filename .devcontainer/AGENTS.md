@@ -22,6 +22,20 @@ devcontainer exec --workspace-folder . bash -c "
 
 Both lines must print `OK`. 
 
+## Base image changes
+
+When the Dockerfile `FROM` line changes to a different base image, run these steps after `devcontainer up` succeeds:
+
+1. Wipe the stale VS Code server binaries from the named volume — the old binaries are OS-specific and will cause VS Code to fail to attach:
+   ```bash
+   devcontainer exec --workspace-folder . bash -c "rm -rf /home/vscode/.vscode-server"
+   ```
+2. Verify the `remoteUser` (`vscode`) owns its home directory and has the correct UID:
+   ```bash
+   devcontainer exec --workspace-folder . bash -c "id && ls -lan /home/"
+   ```
+   The `vscode` user must own `/home/vscode/` (same UID as the volume's file ownership). If not, the base image likely has a pre-existing user claiming UID 1000 — remove it with `userdel -r <user>` and re-create `vscode` with `-u 1000`.
+
 ## Common files and what to watch for
 
 - **Dockerfile** — any change to base image, `RUN` steps, or `COPY` instructions can break the build. Verify layer by layer if needed.

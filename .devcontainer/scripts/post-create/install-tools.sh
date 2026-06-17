@@ -12,17 +12,37 @@ mkdir -p "$HOME/.local/bin"
 grep -qxF 'export PATH="$HOME/.local/bin:$PATH"' "$HOME/.bashrc" \
   || echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.bashrc"
 
+grep -qxF 'export PATH="$HOME/.cargo/bin:$PATH"' "$HOME/.bashrc" \
+  || echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> "$HOME/.bashrc"
+export PATH="$HOME/.cargo/bin:$PATH"
+
 # install OpenTofu
-TOFU_VERSION="${TOFU_VERSION:-1.12.1}"
-curl -fsSL "https://github.com/opentofu/opentofu/releases/download/v${TOFU_VERSION}/tofu_${TOFU_VERSION}_linux_${TARGETARCH}.tar.gz" \
-  | tar -xz -C "$HOME/.local/bin" tofu
-chmod +x "$HOME/.local/bin/tofu"
+if ! tofu --version &>/dev/null 2>&1; then
+  TOFU_VERSION="${TOFU_VERSION:-1.12.1}"
+  curl -fsSL "https://github.com/opentofu/opentofu/releases/download/v${TOFU_VERSION}/tofu_${TOFU_VERSION}_linux_${TARGETARCH}.tar.gz" \
+    | tar -xz -C "$HOME/.local/bin" tofu
+  chmod +x "$HOME/.local/bin/tofu"
+fi
 
 # install Claude Code
-curl -fsSL https://claude.ai/install.sh | bash
+if ! claude --version &>/dev/null 2>&1; then
+  curl -fsSL https://claude.ai/install.sh | bash
+fi
 
 # install kubectl
-KUBECTL_VERSION="$(curl -fsSL https://dl.k8s.io/release/stable.txt)"
-curl -fsSL "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl" \
-  -o "$HOME/.local/bin/kubectl"
-chmod +x "$HOME/.local/bin/kubectl"
+if ! kubectl version --client &>/dev/null 2>&1; then
+  KUBECTL_VERSION="$(curl -fsSL https://dl.k8s.io/release/stable.txt)"
+  curl -fsSL "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl" \
+    -o "$HOME/.local/bin/kubectl"
+  chmod +x "$HOME/.local/bin/kubectl"
+fi
+
+# install cargo-binstall
+if ! cargo-binstall --version &>/dev/null 2>&1; then
+  curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+fi
+
+# install forgejo-cli
+if ! fj --version &>/dev/null 2>&1; then
+  cargo-binstall forgejo-cli
+fi

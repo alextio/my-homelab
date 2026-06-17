@@ -28,5 +28,6 @@
   },
   "postCreateCommand": "for f in .devcontainer/scripts/post-create/*.sh; do bash \"$f\"; done",
   "remoteUser": "vscode",
-  "shutdownAction": "none"
+  "runArgs": ["--add-host=forgejo.local:host-gateway"],
+  "shutdownAction": "stopContainer"
 }
