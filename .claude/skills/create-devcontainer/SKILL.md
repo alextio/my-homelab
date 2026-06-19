@@ -102,6 +102,16 @@ devcontainer exec --workspace-folder path/to/project bash -c \
   "touch /home/vscode/.writetest && rm /home/vscode/.writetest && echo 'home OK'"
 ```
 
+## Standalone post-create script
+
+The base setup script is also available standalone:
+
+```bash
+cp .claude/skills/create-devcontainer/00-setup.sh \
+   path/to/project/.devcontainer/scripts/post-create/00-setup.sh
+chmod +x path/to/project/.devcontainer/scripts/post-create/00-setup.sh
+```
+
 ## Adding more post-create steps
 
 Drop additional scripts in `.devcontainer/scripts/post-create/`. They run in filename
