@@ -47,6 +47,19 @@ Next:
   devcontainer up --workspace-folder /path/to/project
 ```
 
+## Standalone Dockerfile
+
+If you just want the Dockerfile without running the generator, copy it directly:
+
+```bash
+cp .claude/skills/create-devcontainer/Dockerfile path/to/project/.devcontainer/Dockerfile
+```
+
+The file ([.claude/skills/create-devcontainer/Dockerfile](.claude/skills/create-devcontainer/Dockerfile))
+uses `vscode`/UID 1000 defaults and accepts `--build-arg USERNAME=...` / `--build-arg USER_UID=...`
+to override at build time. Use `scaffold.sh` instead when you need `devcontainer.json` and
+post-create scripts generated alongside it.
+
 ## What gets generated
 
 | File | Purpose |
