@@ -42,6 +42,17 @@ When the Dockerfile `FROM` line changes to a different base image, run these ste
 - **devcontainer.json** — invalid JSON or unknown feature identifiers will cause `devcontainer up` to fail immediately.
 - **devcontainer-lock.json** — this is auto-generated; do not edit it by hand. If it becomes stale after a `devcontainer.json` change, delete it and let `devcontainer up` regenerate it.
 
+## Warning: features that write to `/home/vscode/` are shadowed by the volume
+
+`devcontainer.json` mounts a named volume at `/home/vscode/`. This volume is applied **at runtime, after image build** — it replaces the entire home directory, hiding anything a devcontainer feature wrote there at build time.
+
+**Do not rely on devcontainer features to populate the home directory.** Common examples that silently break:
+- oh-my-zsh (installed by `common-utils` to `~/.oh-my-zsh`)
+- dotfiles written by features to `~/.bashrc`, `~/.zshrc`, etc.
+- Any feature that writes configs or tools under `~`
+
+If a feature is needed for something other than home-directory setup (e.g., `common-utils` for `chsh`/shell default, `docker-in-docker` for the daemon), it is fine to add. But any home-directory bootstrapping that feature would have done must be reproduced in a `post-create` script, which runs after the container starts with the volume already mounted.
+
 ## Binary installation
 
 Install binaries to `$HOME/.local/bin` (or another user-writable directory) and add it to `$PATH` in `.bashrc`. Do **not** write to `/usr/local/bin` or other root-owned paths — `postCreateCommand` runs as the `vscode` user and will fail with a permission error.

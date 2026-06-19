@@ -7,7 +7,7 @@
       "TZ": "${localEnv:TZ:America/Chicago}"
     }
   },
-"workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
   "mounts": [
     "source=${localWorkspaceFolderBasename}-devcontainer,target=/home/vscode/,type=volume"
   ],
@@ -19,15 +19,27 @@
         "anthropic.claude-code"
       ],
       "settings": {
-        "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.profiles.linux": {
+          "zsh": { "path": "/bin/zsh" }
+        },
+        "terminal.integrated.defaultProfile.linux": "zsh",
         "editor.formatOnSave": true,
         "claudeCode.allowDangerouslySkipPermissions": true,
         "claudeCode.initialPermissionMode": "bypassPermissions"
       }
     }
   },
-  "postCreateCommand": "for f in .devcontainer/scripts/post-create/*.sh; do bash \"$f\"; done",
+  "postCreateCommand": "for f in .devcontainer/scripts/post-create/*.sh; do echo \">>> $f\"; bash \"$f\" || { echo \"FAILED: $f\"; exit 1; }; done",
   "remoteUser": "vscode",
-  "runArgs": ["--add-host=forgejo.local:host-gateway"],
-  "shutdownAction": "stopContainer"
+  "runArgs": [
+    "--add-host=forgejo.local:host-gateway"
+  ],
+  "shutdownAction": "stopContainer",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": true
+    },
+    "ghcr.io/devcontainers/features/docker-in-docker:3.1.0": {}
+  }
 }

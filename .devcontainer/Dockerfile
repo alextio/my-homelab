@@ -6,6 +6,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     bash \
+    zsh \
     ca-certificates \
     curl \
     git \
@@ -19,7 +20,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 
 RUN userdel -r ubuntu \
-    && useradd -m -u 1000 -s /bin/bash $USERNAME \
+    && useradd -m -u 1000 -s /bin/zsh $USERNAME \
     && echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/$USERNAME
 
 WORKDIR /workspace
