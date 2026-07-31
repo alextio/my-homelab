@@ -1,0 +1,23 @@
+# Copy to terraform.tfvars and fill in your values.
+# Never commit terraform.tfvars — it contains secrets.
+
+proxmox_endpoint = "https://192.168.1.10:8006/"
+proxmox_username = "root@pam"
+
+# Use either password or API token (token preferred)
+# proxmox_password  = "your-password"
+proxmox_api_token = "root@pam!tofu=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+node_name        = "pve"
+disk_storage     = "local-lvm"
+snippets_storage = "local"
+timezone         = "America/New_York"
+
+ssh_public_key = "ssh-ed25519 AAAA... you@host"
+
+# Optional: define VMs to clone from the template immediately
+# vms = {
+#   "k3s-node-1" = { vm_id = 101 }
+#   "k3s-node-2" = { vm_id = 102, memory = 4096 }
+#   "k3s-node-3" = { vm_id = 103, memory = 4096, disk_gb = 40 }
+# }
