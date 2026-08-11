@@ -13,11 +13,20 @@ disk_storage     = "local-lvm"
 snippets_storage = "local"
 timezone         = "America/New_York"
 
+# Cloud-init user-data template, relative to cloud-init/
+cloud_init_file = "ubuntu-24.04-cloud-init.yaml"
+
 ssh_public_key = "ssh-ed25519 AAAA... you@host"
+
+# Pre-shared k3s cluster secret (pick any random string, e.g.
+# `openssl rand -hex 32`). Not used by cloud-init/tofu directly — Ansible
+# (infrastructure/ansible) reads it via `tofu output -raw k3s_token` when it
+# installs/configures the server.
+# k3s_token = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
 # Optional: define VMs to clone from the template immediately
 # vms = {
-#   "k3s-node-1" = { vm_id = 101 }
-#   "k3s-node-2" = { vm_id = 102, memory = 4096 }
-#   "k3s-node-3" = { vm_id = 103, memory = 4096, disk_gb = 40 }
+#   "k3s-server-1" = { vm_id = 101 }
+#   "k3s-agent-1"  = { vm_id = 102, memory = 4096, is_server = false }
+#   "k3s-agent-2"  = { vm_id = 103, memory = 4096, disk_gb = 40, is_server = false }
 # }

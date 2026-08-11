@@ -1,11 +1,14 @@
 #cloud-config
 
+hostname: ${hostname}
+manage_etc_hosts: true
+
 # ---------------------------------------------------------------------------
 # User configuration
 # ---------------------------------------------------------------------------
 users:
-  - name: ${user}
-    gecos: Ubuntu User
+  - name: user
+    gecos: Cloud-init User
     groups: [sudo, adm, docker]
     shell: /bin/bash
     sudo: ALL=(ALL) NOPASSWD:ALL
@@ -32,6 +35,7 @@ packages:
   - git
   - vim
   - htop
+  - jq
   - unattended-upgrades
 
 # ---------------------------------------------------------------------------

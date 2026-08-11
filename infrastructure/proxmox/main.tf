@@ -46,21 +46,41 @@ resource "proxmox_download_file" "ubuntu_cloud_image" {
 }
 
 # ---------------------------------------------------------------------------
-# 2. Upload cloud-init user-data snippet
+# 2. Upload cloud-init user-data snippets
+# Cloud-init only handles OS bootstrap now (users, packages, SSH hardening) —
+# k3s install/config is Ansible's job (infrastructure/ansible), run after the
+# VM exists, so iterating on k3s config never needs a VM rebuild.
 # ---------------------------------------------------------------------------
-resource "proxmox_virtual_environment_file" "cloud_init_user_data" {
+resource "proxmox_virtual_environment_file" "template_cloud_init" {
   content_type = "snippets"
   datastore_id = var.snippets_storage
   node_name    = var.node_name
 
   source_raw {
-    # Render the user-data template with the configured timezone
-    data = templatefile("${path.module}/cloud-init/proxmox-ubuntu.yaml", {
+    data = templatefile("${path.module}/cloud-init/${var.cloud_init_file}", {
+      hostname       = var.template_name
       timezone       = var.timezone
-      user           = var.default_user
       ssh_public_key = trimspace(var.ssh_public_key)
     })
-    file_name = "ubuntu-24.04-userdata.yaml"
+    file_name = "template-userdata.yaml"
+  }
+}
+
+# One rendered snippet per cloned VM — each needs its own hostname baked in.
+resource "proxmox_virtual_environment_file" "cloud_init_user_data" {
+  for_each = var.vms
+
+  content_type = "snippets"
+  datastore_id = var.snippets_storage
+  node_name    = var.node_name
+
+  source_raw {
+    data = templatefile("${path.module}/cloud-init/${var.cloud_init_file}", {
+      hostname       = each.key
+      timezone       = var.timezone
+      ssh_public_key = trimspace(var.ssh_public_key)
+    })
+    file_name = "${each.key}-userdata.yaml"
   }
 }
 
@@ -87,7 +107,7 @@ resource "proxmox_virtual_environment_vm" "ubuntu_template" {
 
   memory {
     dedicated = var.vm_memory
-    floating = 512 # MiB
+    floating  = 512 # MiB
   }
 
   # Boot disk — imported from the cloud image
@@ -128,7 +148,7 @@ resource "proxmox_virtual_environment_vm" "ubuntu_template" {
 
     # user_data_file_id = cicustom user= in Proxmox; uploads snippet to storage and mounts it on the cloud-init CD-ROM instead of the generated user-data
     # replaces Proxmox's generated user-data entirely — SSH keys must live in the snippet itself, not in user_account
-    user_data_file_id = proxmox_virtual_environment_file.cloud_init_user_data.id
+    user_data_file_id = proxmox_virtual_environment_file.template_cloud_init.id
   }
 
   lifecycle {
@@ -144,9 +164,12 @@ resource "proxmox_virtual_environment_vm" "ubuntu_template" {
 # 4. (Optional) Clone VMs from the template
 # Populate var.vms to create VMs, e.g.:
 #   vms = {
-#     "k3s-node-1" = { vm_id = 10001 }
-#     "k3s-node-2" = { vm_id = 10002, memory = 4096 }
+#     "k3s-server-1" = { vm_id = 10001 }
+#     "k3s-agent-1"  = { vm_id = 10002, memory = 4096, is_server = false }
 #   }
+# is_server defaults to false; it drives the k3s_inventory output that feeds
+# the Ansible dynamic inventory (infrastructure/ansible), which is what
+# actually installs/configures k3s once the VM is up.
 # ---------------------------------------------------------------------------
 resource "proxmox_virtual_environment_vm" "vm" {
   for_each = var.vms
@@ -158,19 +181,23 @@ resource "proxmox_virtual_environment_vm" "vm" {
 
   clone {
     vm_id = proxmox_virtual_environment_vm.ubuntu_template.vm_id
-    full  = true
+    full  = each.value.full_clone
   }
 
   # Required so Terraform waits for and reports the guest-agent-assigned
-  # IP address in ipv4_addresses — without this, vm_ips stays "pending"
-  # and the k3s bootstrap provisioner below has nothing to connect to.
+  # IP address in ipv4_addresses — without this, vm_ips stays "pending".
   agent {
     enabled = true
   }
 
+  # Let cores/memory be bumped later via tofu apply without a stop/start.
+  # numa is required by Proxmox for memory hotplug specifically.
+  hotplug = "network,disk,usb,cpu,memory"
+
   cpu {
     cores = each.value.cores
     type  = "host"
+    numa  = true
   }
 
   memory {
@@ -194,32 +221,9 @@ resource "proxmox_virtual_environment_vm" "vm" {
 
     # user_data_file_id = cicustom user= in Proxmox; uploads snippet to storage and mounts it on the cloud-init CD-ROM instead of the generated user-data
     # replaces Proxmox's generated user-data entirely — SSH keys must live in the snippet itself, not in user_account
-    user_data_file_id = proxmox_virtual_environment_file.cloud_init_user_data.id
+    user_data_file_id = proxmox_virtual_environment_file.cloud_init_user_data[each.key].id
   }
 
   # Start VM after creation
   started = true
-}
-
-# ---------------------------------------------------------------------------
-# 5. Bootstrap k3s on each cloned VM via k3sup, right after it comes up
-# ---------------------------------------------------------------------------
-resource "terraform_data" "k3s_bootstrap" {
-  for_each = var.vms
-
-  # Re-run if the VM is recreated or its IP changes
-  triggers_replace = [
-    proxmox_virtual_environment_vm.vm[each.key].vm_id,
-    proxmox_virtual_environment_vm.vm[each.key].ipv4_addresses,
-  ]
-
-  provisioner "local-exec" {
-    command     = "${path.module}/../../scripts/k3sup-bootstrap.sh ${each.key}"
-    working_dir = path.module
-
-    environment = {
-      K3S_SSH_USER = var.default_user
-      K3S_NODE_IP  = proxmox_virtual_environment_vm.vm[each.key].ipv4_addresses[1][0]
-    }
-  }
 }
