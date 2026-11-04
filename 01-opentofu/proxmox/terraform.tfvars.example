@@ -1,0 +1,38 @@
+# Copy to terraform.tfvars and fill in your values.
+# Never commit terraform.tfvars — it contains secrets.
+
+proxmox_endpoint = "https://192.168.1.10:8006/"
+proxmox_username = "root@pam"
+
+# Use either password or API token (token preferred)
+# proxmox_password  = "your-password"
+proxmox_api_token = "root@pam!tofu=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+node_name        = "pve"
+disk_storage     = "local-lvm"
+snippets_storage = "local"
+timezone         = "America/New_York"
+
+# Cloud-init user-data template, relative to cloud-init/
+cloud_init_file = "ubuntu-24.04-cloud-init.yaml"
+
+ssh_public_key = "ssh-ed25519 AAAA... you@host"
+
+# Optional: define VMs to clone from the template immediately.
+# Software config (k3s etc.) is handled by Ansible; ansible_groups feeds
+# the `inventory` output.
+# vms = {
+#   "server-1" = { vm_id = 1001, ansible_groups = ["k3s_server"] }
+#   "agent-1"  = { vm_id = 1002, max_memory = 4096, ansible_groups = ["k3s_agent"] }
+# }
+
+# Optional: define LXC containers
+# lxc_template_storage = "local"   # must allow the vztmpl content type
+# lxcs = {
+#   "dns-1" = { vm_id = 101, ip_address = "192.168.5.101/22", ansible_groups = ["dns"] }
+#   "docker-1" = { vm_id = 102, ip_address = "192.168.5.102/22", memory = 2048, disk_gb = 16, nesting = true, description = "Docker host" }
+#   # Bind-mount a host directory (must exist; needs root@pam auth)
+#   "nfs-1"    = { vm_id = 103, ip_address = "192.168.5.103/22", mount_points = [{ host_path = "/tank/nfs", container_path = "/srv/nfs" }] }
+#   # Pass host device nodes through (needs root@pam auth)
+#   "tailscale" = { vm_id = 111, ip_address = "192.168.5.111/22", devices = ["/dev/net/tun"] }
+# }

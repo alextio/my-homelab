@@ -28,3 +28,5 @@ scripts/k3sup
 
 # macOS
 .DS_Store
+
+.claude

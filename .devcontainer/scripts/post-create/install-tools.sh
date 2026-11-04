@@ -37,6 +37,28 @@ if ! kubectl version --client &>/dev/null 2>&1; then
   chmod +x "$HOME/.local/bin/kubectl"
 fi
 
+# install k9s
+if ! k9s version &>/dev/null 2>&1; then
+  curl -fsSL "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_${TARGETARCH}.tar.gz" \
+    | tar -xz -C "$HOME/.local/bin" k9s
+  chmod +x "$HOME/.local/bin/k9s"
+fi
+
+# install argocd CLI
+if ! argocd version --client &>/dev/null 2>&1; then
+  curl -fsSL "https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-${TARGETARCH}" \
+    -o "$HOME/.local/bin/argocd"
+  chmod +x "$HOME/.local/bin/argocd"
+fi
+
+# install helm
+if ! helm version &>/dev/null 2>&1; then
+  HELM_VERSION="${HELM_VERSION:-3.19.0}"
+  curl -fsSL "https://get.helm.sh/helm-v${HELM_VERSION}-linux-${TARGETARCH}.tar.gz" \
+    | tar -xz -C "$HOME/.local/bin" --strip-components=1 "linux-${TARGETARCH}/helm"
+  chmod +x "$HOME/.local/bin/helm"
+fi
+
 # install cargo-binstall
 if ! cargo-binstall --version &>/dev/null 2>&1; then
   curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
@@ -45,4 +67,12 @@ fi
 # install forgejo-cli
 if ! fj --version &>/dev/null 2>&1; then
   cargo-binstall forgejo-cli
+fi
+
+# install kind 
+if ! kind version &>/dev/null 2>&1; then
+  echo "Installing kind..."
+  curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.32.0/kind-linux-${TARGETARCH}
+  chmod +x ./kind
+  sudo mv ./kind /usr/local/bin/kind
 fi

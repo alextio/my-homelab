@@ -19,10 +19,7 @@
         "anthropic.claude-code"
       ],
       "settings": {
-        "terminal.integrated.profiles.linux": {
-          "zsh": { "path": "/bin/zsh" }
-        },
-        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.defaultProfile.linux": "bash",
         "editor.formatOnSave": true,
         "claudeCode.allowDangerouslySkipPermissions": true,
         "claudeCode.initialPermissionMode": "bypassPermissions"
@@ -32,14 +29,6 @@
   "postCreateCommand": "for f in .devcontainer/scripts/post-create/*.sh; do echo \">>> $f\"; bash \"$f\" || { echo \"FAILED: $f\"; exit 1; }; done",
   "remoteUser": "vscode",
   "runArgs": [
-    "--add-host=forgejo.local:host-gateway"
   ],
-  "shutdownAction": "stopContainer",
-  "features": {
-    "ghcr.io/devcontainers/features/common-utils:2": {
-      "installZsh": true,
-      "configureZshAsDefaultShell": true
-    },
-    "ghcr.io/devcontainers/features/docker-in-docker:3.1.0": {}
-  }
+  "shutdownAction": "stopContainer"
 }

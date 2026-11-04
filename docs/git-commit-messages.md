@@ -33,3 +33,4 @@ Rules:
 - **scope** is optional but recommended for non-trivial changes
 - **description** is lowercase, imperative mood, no trailing period
 - Body and footer are optional — use them for breaking changes or issue references
+- No `Co-Authored-By` trailer or other AI attribution lines
