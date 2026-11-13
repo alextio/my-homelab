@@ -1,6 +1,6 @@
 [submodule "02-ansible"]
 	path = 02-ansible
-	url = https://codeberg.org/alextio/uth-ansible-playbooks
+	url = https://github.com/alextio/my-ansible-playbooks
 [submodule "03-argocd-kubernetes"]
 	path = 03-argocd-kubernetes
 	url = https://github.com/alextio/my-homelab-k8s
