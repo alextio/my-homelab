@@ -8,7 +8,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the repository layout.
 
 - [01-opentofu/AGENTS.md](01-opentofu/AGENTS.md) — OpenTofu/Proxmox: apply confirmation, state files, SSH agent, verification, VM/LXC ID ranges.
 - [02-ansible/CLAUDE.md](02-ansible/CLAUDE.md) — Ansible playbooks (separate repo/submodule).
-- [03-argocd-kubernetes/AGENTS.md](03-argocd-kubernetes/AGENTS.md) — Argo CD: sync waves, IP allocations, ExternalSecrets.
+- [03-argocd-kubernetes/AGENTS.md](03-argocd-kubernetes/AGENTS.md) — Argo CD: sync waves, IP allocations, ExternalSecrets, Reloader opt-ins.
 - [.devcontainer/AGENTS.md](.devcontainer/AGENTS.md) — dev container build verification.
 
 ## Never commit secrets
