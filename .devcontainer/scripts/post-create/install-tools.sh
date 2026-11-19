@@ -69,12 +69,15 @@ if ! fj --version &>/dev/null 2>&1; then
   cargo-binstall forgejo-cli
 fi
 
-# install kind 
+# install kind
 if ! kind version &>/dev/null 2>&1; then
-  echo "Installing kind..."
-  curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.32.0/kind-linux-${TARGETARCH}
-  chmod +x ./kind
-  sudo mv ./kind /usr/local/bin/kind
+  KIND_VERSION="${KIND_VERSION:-0.32.0}"
+  KIND_URL="https://github.com/kubernetes-sigs/kind/releases/download/v${KIND_VERSION}/kind-linux-${TARGETARCH}"
+  KIND_SHA256="$(curl -fsSL "${KIND_URL}.sha256sum" | cut -d' ' -f1)"
+  curl -fsSL "$KIND_URL" -o "$HOME/.local/bin/kind"
+  echo "${KIND_SHA256}  $HOME/.local/bin/kind" | sha256sum -c - \
+    || { rm -f "$HOME/.local/bin/kind"; exit 1; }
+  chmod +x "$HOME/.local/bin/kind"
 fi
 
 # install the bws client. It forwards to the bws-broker container, which holds
