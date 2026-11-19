@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# bws client for the devcontainer: forwards the command to the bws-broker
+# container, which holds the access token. Only the subset of bws the broker
+# allows works, and secret values never come back (see server.py).
+set -euo pipefail
+
+url=${BWS_BROKER_URL:-http://bws-broker:8080}
+
+# Pass argv through stdin (NUL-separated) so values stay out of the process list
+body=$( (($#)) && printf '%s\0' "$@" | jq -Rs '{argv: (split("\u0000") | .[:-1])}' || echo '{"argv": []}')
+
+if ! resp=$(printf '%s' "$body" | curl -sS --fail -X POST -H 'Content-Type: application/json' \
+    --data-binary @- "$url/bws" 2>&1); then
+    echo "bws: bws-broker not reachable at $url ($resp)" >&2
+    echo "bws: it runs on the host; see .devcontainer/bws-broker/README.md" >&2
+    exit 1
+fi
+
+jq -j '.stdout' <<<"$resp"
+jq -j '.stderr' <<<"$resp" >&2
+exit "$(jq -r '.exit' <<<"$resp")"

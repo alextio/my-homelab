@@ -76,3 +76,48 @@ if ! kind version &>/dev/null 2>&1; then
   chmod +x ./kind
   sudo mv ./kind /usr/local/bin/kind
 fi
+
+# install the bws client. It forwards to the bws-broker container, which holds
+# BWS_ACCESS_TOKEN; the real bws CLI and the token never enter this container.
+# Always reinstalled so it replaces a real bws left in the home volume.
+install -m 755 "$(dirname "$0")/../../bws-broker/bws" "$HOME/.local/bin/bws"
+
+# install uv (also manages its own Python; the image has none)
+# Extracted straight into ~/.local/bin, not via astral's install.sh: that
+# script unpacks in the container's /tmp and mv's the binaries over, which
+# keeps /tmp's per-container SELinux label, so the next (recreated) container
+# can't run, replace or delete them ("Permission denied").
+if ! uv --version &>/dev/null 2>&1; then
+  UV_VERSION="${UV_VERSION:-0.13.9}"
+  UV_TARBALL="uv-${ARCH}-unknown-linux-gnu.tar.gz"
+  UV_URL="https://github.com/astral-sh/uv/releases/download/${UV_VERSION}/${UV_TARBALL}"
+  mkdir -p "$HOME/.cache"
+  UV_SHA256="$(curl -fsSL "${UV_URL}.sha256" | cut -d' ' -f1)"
+  curl -fsSL "$UV_URL" -o "$HOME/.cache/${UV_TARBALL}"
+  echo "${UV_SHA256}  $HOME/.cache/${UV_TARBALL}" | sha256sum -c -
+  tar -xzf "$HOME/.cache/${UV_TARBALL}" -C "$HOME/.local/bin" --strip-components=1 \
+    || { echo "uv: cannot write ~/.local/bin/uv; if it has a stale SELinux label (ls -Z), delete it from the host" >&2; exit 1; }
+  rm -f "$HOME/.cache/${UV_TARBALL}"
+fi
+export PATH="$HOME/.local/bin:$PATH"
+
+# install python3 (uv-managed, user-space). --default also links python,
+# python3 and python3.X into ~/.local/bin. Idempotent: a no-op when present.
+PYTHON_VERSION="${PYTHON_VERSION:-3.13}"
+uv python install "$PYTHON_VERSION" --default --preview-features python-install-default
+
+# install Ansible
+# Not the devcontainers-extra ansible feature: it pip-installs pipx into the
+# system Python, which Ubuntu 24.04 blocks (PEP 668).
+# ansible-core provides the CLIs (ansible-playbook, ansible-galaxy,
+# ansible-vault); the `ansible` package adds the community collections.
+# Python is pinned: uv otherwise picks the newest (3.15), which ansible-core
+# 2.22 doesn't support (AttributeError on dataclasses._is_type at startup).
+# --force replaces a broken install instead of skipping it.
+ANSIBLE_PYTHON="${ANSIBLE_PYTHON:-3.13}"
+if ! ansible --version &>/dev/null 2>&1; then
+  uv tool install --force --python "$ANSIBLE_PYTHON" ansible-core --with ansible
+fi
+if ! ansible-lint --version &>/dev/null 2>&1; then
+  uv tool install --force --python "$ANSIBLE_PYTHON" ansible-lint
+fi

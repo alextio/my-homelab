@@ -1,0 +1,53 @@
+# Dev container (devcontainer.json points here) plus bws-broker, which holds
+# the Bitwarden Secrets Manager token so the devcontainer never sees it. See
+# bws-broker/README.md.
+#
+# Needs podman-compose as the compose provider: the token is an external
+# Podman secret, which docker-compose only supports with Swarm.
+services:
+  devcontainer:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+      args:
+        TZ: ${TZ:-America/Chicago}
+    volumes:
+      - ..:/workspace
+      - home:/home/vscode
+    environment:
+      BWS_BROKER_URL: http://bws-broker:8080
+    depends_on:
+      - bws-broker
+    command: sleep infinity
+
+  bws-broker:
+    build: bws-broker
+    environment:
+      # Proxmox API proxy on https://bws-broker:8006/ for OpenTofu (see
+      # bws-broker/README.md). The token is read from this Bitwarden secret.
+      BWS_BROKER_PVE_URL: https://192.168.4.111:8006
+      BWS_BROKER_PVE_TOKEN_SECRET_ID: cba5bd91-d8b4-4b5a-b932-b5050150e91b
+      # SHA-256 of the Proxmox API cert. It changes when Proxmox renews the
+      # cert (current one expires 2027-11-06); refresh with:
+      #   openssl s_client -connect 192.168.4.111:8006 </dev/null 2>/dev/null | openssl x509 -noout -fingerprint -sha256
+      BWS_BROKER_PVE_FINGERPRINT: 5D:DA:E4:59:BF:BD:38:87:2D:AB:98:B1:5A:6F:34:87:26:9B:04:51:AD:93:B7:64:48:2B:EF:14:1D:EE:2C:87
+    secrets:
+      - bws_access_token
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+volumes:
+  home:
+    # Fixed name so the existing home volume is reused (no project prefix)
+    name: my-homelab-devcontainer
+
+secrets:
+  bws_access_token:
+    # Create once on the host:
+    #   bash: read -rsp 'BWS access token: ' t && printf '%s' "$t" | podman secret create bws_access_token - ; unset t
+    #   zsh:  read -rs 't?BWS access token: ' && printf '%s' "$t" | podman secret create bws_access_token - ; unset t
+    external: true
