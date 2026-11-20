@@ -26,7 +26,7 @@ Each layer only provisions what the next one needs. OpenTofu stops at "VM with S
 | [03-argocd-kubernetes/](03-argocd-kubernetes/) | GitOps repo: `app-of-apps.yaml` plus `manifests/` and `apps/` | Submodule. See its [README](03-argocd-kubernetes/README.md) |
 | [scripts/](scripts/) | One-off helpers: Proxmox user permissions, k3sup/flux bootstrap, Colima k3s node | Not part of the main flow |
 | [.devcontainer/](.devcontainer/) | Dev container with the tooling (`tofu`, `kubectl`, ...) | |
-| [docs/](docs/) | Conventions, e.g. [commit messages](docs/git-commit-messages.md) | |
+| [docs/](docs/) | Conventions, e.g. [commit messages](docs/git-commit-messages.md), and [journey/](docs/journey/) write-ups of each service as it was set up | |
 
 ### 01-opentofu
 
