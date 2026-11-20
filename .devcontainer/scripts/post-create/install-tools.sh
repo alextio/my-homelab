@@ -80,6 +80,30 @@ if ! kind version &>/dev/null 2>&1; then
   chmod +x "$HOME/.local/bin/kind"
 fi
 
+# install the coder CLI, pinned to the chart version of the coder Argo CD
+# Application (the chart sets no image tag, so the server runs the chart's
+# appVersion, which matches its version). Reinstalled when that pin changes.
+CODER_APP="$(dirname "$0")/../../../03-argocd-kubernetes/manifests/templates/coder.yaml"
+if [ -z "${CODER_VERSION:-}" ] && [ -f "$CODER_APP" ]; then
+  CODER_VERSION="$(awk '/chart: coder$/ {f=1; next} f && /targetRevision:/ {print $2; exit}' "$CODER_APP")"
+fi
+if [ -z "${CODER_VERSION:-}" ]; then
+  echo "coder: skipped, can't read the chart version from $CODER_APP (submodule not checked out?); set CODER_VERSION" >&2
+elif ! coder version 2>/dev/null | grep -q "^Coder v${CODER_VERSION}[+ ]"; then
+  CODER_TARBALL="coder_${CODER_VERSION}_linux_${TARGETARCH}.tar.gz"
+  CODER_BASE="https://github.com/coder/coder/releases/download/v${CODER_VERSION}"
+  mkdir -p "$HOME/.cache"
+  CODER_SHA256="$(curl -fsSL "${CODER_BASE}/coder_${CODER_VERSION}_checksums.txt" \
+    | awk -v f="$CODER_TARBALL" '$2 == f {print $1}')"
+  [ -n "$CODER_SHA256" ] || { echo "coder: no checksum for $CODER_TARBALL" >&2; exit 1; }
+  curl -fsSL "${CODER_BASE}/${CODER_TARBALL}" -o "$HOME/.cache/${CODER_TARBALL}"
+  echo "${CODER_SHA256}  $HOME/.cache/${CODER_TARBALL}" | sha256sum -c - \
+    || { rm -f "$HOME/.cache/${CODER_TARBALL}"; exit 1; }
+  rm -f "$HOME/.local/bin/coder"
+  tar -xzf "$HOME/.cache/${CODER_TARBALL}" -C "$HOME/.local/bin" ./coder
+  rm -f "$HOME/.cache/${CODER_TARBALL}"
+fi
+
 # install the bws client. It forwards to the bws-broker container, which holds
 # BWS_ACCESS_TOKEN; the real bws CLI and the token never enter this container.
 # Always reinstalled so it replaces a real bws left in the home volume.
