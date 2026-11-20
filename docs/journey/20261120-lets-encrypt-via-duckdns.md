@@ -185,8 +185,16 @@ This was the biggest surprise.
 
 The first Cloudflare attempt was reverted before it was ever committed.
 
-Not committed: the matching `02-ansible` change
-(`playbooks/dns/templates/rewrites.yml.j2`, `playbooks/dns/vars.yml`).
+`02-ansible`, on branch `feat/dns-duckdns-rewrites` (not yet merged):
+
+| Commit | What |
+|---|---|
+| `712fc52` | AdGuard rewrites for `*.alextio.duckdns.org` (Traefik) and both agentgateway names; `agentgateway_ip` in `playbooks/dns/vars.yml` |
+
+Parent repo, on branch `docs/journey-duckdns`: this write-up, plus the
+submodule pointers bumped to `2663dc6` and `712fc52`.
+
+Done outside Git: the live AdGuard rewrites, added in the AdGuard UI.
 
 ## Still to do
 
