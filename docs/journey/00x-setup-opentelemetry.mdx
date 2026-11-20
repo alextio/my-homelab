@@ -1,0 +1,37 @@
+
+## Goal
+I want to keep tabs on how my kubernetes cluster is doing in terms of performances and resources consumed. We can do this with an OpenTelemetry setup involving an OTel collector, Prometheus, and Grafana.
+
+
+## OpenTelemetry 
+There are three types of data we can collect:
+1. Metrics
+2. Traces
+3. Logs
+
+
+### Collectors
+https://opentelemetry.io/docs/collector/configuration/#basics
+Collectors themselves can be broken down into four types of *pipeline* components:
+1. Receivers
+2. Processors
+3. Exporters
+4. Connectors
+
+Each collector requires at least one Receiver and one Exporter component. Everything else is optional.
+
+## Set up
+https://dev.to/cypher682/building-the-full-lgtm-observability-stack-from-scratch-metrics-logs-traces-and-alerting-2l9f
+
+
+### Metrics backend - Prometheus
+
+### Traces backend - Arize Phoenix
+
+### Collector - 
+
+### Visualization - Grafana
+
+## No-code Instrumentation within Kubernetes
+https://opentelemetry.io/docs/platforms/kubernetes/operator/
+
