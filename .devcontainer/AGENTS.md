@@ -89,6 +89,48 @@ The devcontainer is defined in `compose.yaml` (not `build`/`runArgs` in `devcont
 
 `postStartCommand` runs every `scripts/post-start/*.sh` on each container start. Unlike post-create, a failing script is reported but doesn't stop the container. There's no systemd in the container, so long-running processes are started with `setsid nohup … &` and a pid file (see `start-t3.sh`), and nothing restarts them if they exit.
 
+## Tailscale
+
+The phone reaches the dev container's T3 Code server over the tailnet.
+`post-create/install-tailscale.sh` installs a pinned, checksum-verified
+Tailscale. `post-start/start-tailscale.sh` runs `tailscaled` as `vscode` in
+userspace-networking mode, with its state and socket in
+`~/.local/share/tailscale`. The `~/.local/bin/tailscale` wrapper points the
+CLI at that socket.
+
+- **The only way in is `tailscale serve`.** `t3 pair --tailscale` publishes
+  t3 (still bound to 127.0.0.1:3773) on HTTPS 443. Don't publish anything
+  else.
+- **Keep userspace mode.** Don't add `/dev/net/tun`, `NET_ADMIN`, or
+  `--socks5-server` / `--outbound-http-proxy-listen`. In userspace mode
+  without those, programs here can't open connections into the tailnet or
+  through the subnet router.
+- **Log in without routes or DNS:**
+  `tailscale up --hostname=homelab-devcontainer --accept-routes=false --accept-dns=false`.
+- **For now the node is untagged, and the tailnet policy is unchanged**
+  (we plan to move to Headscale). So the node gets the rules that apply to
+  your own devices. With an allow-all policy, every tailnet device can reach
+  HTTPS 443, with the t3 pairing code as the only lock. The node key also
+  expires every 180 days. Restricting it to the phone is a policy change on
+  the control plane, not something to set here:
+  ```jsonc
+  "tagOwners": { "tag:devcontainer": ["autogroup:admin"] },
+  "hosts":     { "phone": "100.x.y.z" },
+  "grants": [
+    // ...existing grants, none matching tag:devcontainer...
+    { "src": ["phone"], "dst": ["tag:devcontainer"], "ip": ["tcp:443"] },
+  ],
+  "tests": [
+    { "src": "phone", "accept": ["tag:devcontainer:443"] },
+  ],
+  ```
+  Then log in again with `--advertise-tags=tag:devcontainer --force-reauth`.
+- **Treat `~/.local/share/tailscale` as a key.** It holds the node key, so
+  anyone who copies it can join the tailnet as this node.
+- **HTTPS needs MagicDNS and HTTPS certificates** turned on for the
+  tailnet. The certificate for `homelab-devcontainer.<tailnet>.ts.net` goes
+  into public Certificate Transparency logs.
+
 ## Binary installation
 
 Install binaries to `$HOME/.local/bin` (or another user-writable directory) and add it to `$PATH` in `.bashrc`. Do **not** write to `/usr/local/bin` or other root-owned paths — `postCreateCommand` runs as the `vscode` user and will fail with a permission error.
