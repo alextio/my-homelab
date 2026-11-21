@@ -11,6 +11,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the repository layout.
 - [03-argocd-kubernetes/AGENTS.md](03-argocd-kubernetes/AGENTS.md) — Argo CD: sync waves, IP allocations, ExternalSecrets, Reloader opt-ins.
 - [.devcontainer/AGENTS.md](.devcontainer/AGENTS.md) — dev container build verification.
 - [docs/journey/AGENTS.md](docs/journey/AGENTS.md) — write-ups of past work. When the user says "write a report of what we did", read this first and write the report there in its format.
+- [docs/plan/AGENTS.md](docs/plan/AGENTS.md) — the roadmap of future improvements. When a journey report has "Still to do" items, add them to the roadmap; when a roadmap item is done, remove it.
 
 ## Never commit secrets
 `.env` files, API tokens, SSH private keys, and files with real credentials must never be staged or committed. Check `git diff --cached` before any commit.
