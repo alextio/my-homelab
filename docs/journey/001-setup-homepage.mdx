@@ -18,7 +18,7 @@ my-kubernetes-cluster/
         └── service.yaml
 ```
 Then run `kubectl apply -f argocd-kubernetes/apps/homepage`
-Note: You might be wondering why I've appended "00-" and "01-" to ServiceAccount and Service's respective yaml files. The reason is that **ServiceAccount must be applied *before* Secret**. Otherwise, kubernetes' token controller will silently delete the Secret because its matching ServiceAccount does not exist. kubectl automatically applies every `.yaml` file inside the directory in alphabetical order and every line inside each file from top to bottom. While most resources can be applied out-of-order, 
+Note: You might be wondering why I've appended "00-" and "01-" to ServiceAccount and Service's respective yaml files. The reason is that **ServiceAccount must be applied *before* Secret**. Otherwise, kubernetes' token controller will silently delete the Secret because its matching ServiceAccount does not exist. kubectl automatically applies every `.yaml` file inside the directory in alphabetical order and every line inside each file from top to bottom. While most resources can be applied out-of-order,
 
 ### Breakdown of each Yaml file
 <!-- Insert brief explanation on what each yaml file is supposed to do. -->
@@ -103,7 +103,7 @@ This is a classic permission error where the app tries to write to a file in the
 
 Homepage needs both the `proxmox.yaml: ""` key in the ConfigMap and its subPath volumeMount. If you remove the key but keep the mount, the kubelet creates an empty directory at `/app/config/proxmox.yaml`. The pod starts, but eventually there might be issues if the container needs to read `proxmox.yaml` as an actual YAML file.
 
-Finally, run 
+Finally, run
 ```
 kubectl apply -f apps/homepage/configMap.yaml
 kubectl rollout restart deploy/homepage -n default
@@ -112,5 +112,3 @@ kubectl rollout restart deploy/homepage -n default
 
 ## Future: Migrating to a proper server
 Right now, I've been running my k3s inside a colima VM inside my macbook, so while `homepage.localhost` works for now, it will need to change once I move this cluster to a proper dedicated server. Probably `homepage.internal` I don't plan to expose this cluster to the internet--only my Tailnet, so I don't need to worry about setting upcertificates, at least for now.
-
-

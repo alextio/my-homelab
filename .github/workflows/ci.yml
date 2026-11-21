@@ -1,0 +1,93 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  # Each directory under 01-opentofu/ that holds .tf files is a root module.
+  # CI can't reach Proxmox or Incus and there's no remote state, so this
+  # stops at validate; `tofu plan` is run locally and pasted into the PR.
+  modules:
+    runs-on: ubuntu-latest
+    outputs:
+      dirs: ${{ steps.find.outputs.dirs }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: find
+        run: |
+          dirs=$(find 01-opentofu -name '*.tf' -printf '%h\n' | sort -u | jq -Rsc 'split("\n") | map(select(. != ""))')
+          echo "dirs=$dirs" >> "$GITHUB_OUTPUT"
+
+  tofu:
+    needs: modules
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        dir: ${{ fromJson(needs.modules.outputs.dirs) }}
+    defaults:
+      run:
+        working-directory: ${{ matrix.dir }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_wrapper: false
+      - run: tofu fmt -check -diff -recursive
+      - run: tofu init -backend=false -input=false
+      - run: tofu validate
+      - uses: terraform-linters/setup-tflint@v4
+      - run: |
+          tflint --init --config "$GITHUB_WORKSPACE/.tflint.hcl"
+          tflint --config "$GITHUB_WORKSPACE/.tflint.hcl" --format compact
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: gitleaks
+        run: |
+          curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v8.28.0/gitleaks_8.28.0_linux_x64.tar.gz | tar -xz gitleaks
+          ./gitleaks git --redact --verbose .
+
+  repo-rules:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: no state, tfvars or .env files tracked
+        run: |
+          bad=$(git ls-files | grep -E '(\.tfstate(\..*)?|(^|/)terraform\.tfvars|\.auto\.tfvars|(^|/)\.env)$' || true)
+          if [ -n "$bad" ]; then echo "::error::these files must not be committed:"; echo "$bad"; exit 1; fi
+
+  # A submodule pointer must name a commit that's already on that repo's
+  # main, so the parent never records unmerged (or unpushed) work.
+  submodules:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: submodule commits are on their main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          fail=0
+          git config -f .gitmodules --get-regexp '\.path$' | while read -r key path; do
+            name=${key#submodule.}; name=${name%.path}
+            url=$(git config -f .gitmodules --get "submodule.$name.url")
+            repo=$(echo "$url" | sed -E 's#https://github.com/##; s#\.git$##')
+            sha=$(git ls-tree HEAD "$path" | awk '{print $3}')
+            status=$(gh api "repos/$repo/compare/main...$sha" --jq .status 2>/dev/null || echo missing)
+            echo "$path -> $repo@$sha: $status"
+            case "$status" in
+              identical|behind) ;;
+              *) echo "::error::$path points at $sha, which is not on $repo main ($status)"; exit 1 ;;
+            esac
+          done

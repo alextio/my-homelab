@@ -1,16 +1,16 @@
 
-We've set up our [first service on our k3s cluster](001-setup-homepage.mdx) and managed to access it from the outside (our localhost). We managed to do this, in part, because of Kubernetes' built-in Ingress API (networking.k8s.io/v1). 
+We've set up our [first service on our k3s cluster](001-setup-homepage.mdx) and managed to access it from the outside (our localhost). We managed to do this, in part, because of Kubernetes' built-in Ingress API (networking.k8s.io/v1).
 
 # Installing Traefik into our k3s cluster via Helm
 ```bash
 helm upgrade --install traefik traefik/traefik \
   --version 41.6.0 \
-  --namespace traefik --create-namespace 
+  --namespace traefik --create-namespace
 ```
 
 Wait for about 10 seconds for Traefik to fully start up and check that it is running with an external IP address
 ```bash
-kubectl get po,svc -A 
+kubectl get po,svc -A
 ```
 
 ```
@@ -61,7 +61,7 @@ metadata:
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect-https@kubernetescrd
 ```
 
-To 
+To
 
 Annotations work, but they are a hacky workaround. For one thing, there's no way to validate your annotations--a typo in either the key or value is silently ignored.
 

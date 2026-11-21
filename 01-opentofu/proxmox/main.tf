@@ -126,9 +126,9 @@ resource "proxmox_virtual_environment_file" "cloud_init_user_data" {
 
   source_raw {
     data = templatefile("${path.module}/cloud-init/${local.templates[each.value.template].cloud_init_file}", {
-      hostname        = each.key
-      timezone        = var.timezone
-      ssh_public_key  = trimspace(var.ssh_public_key)
+      hostname       = each.key
+      timezone       = var.timezone
+      ssh_public_key = trimspace(var.ssh_public_key)
       # Each virtiofs mapping becomes an fstab entry at /mnt/<name>
       virtiofs_mounts = each.value.virtiofs
     })

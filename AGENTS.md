@@ -38,5 +38,13 @@ See [./docs/git-commit-messages.md](docs/git-commit-messages.md).
 
 ## Git workflow
 
-- **Never push to `main`.** Work on a branch. Open a PR only if it's truly needed, and only when the user asks for one.
+This applies to all three repos (this one, `02-ansible`, `03-argocd-kubernetes`); `main` is protected in each.
+
+- **Never push to `main`.** Work on a branch, push it, and open a PR yourself once the change is done; you don't need to be asked.
+- **Never merge a PR.** The user merges. In `03-argocd-kubernetes`, merging deploys (Argo CD syncs `main`), so merging is the user's go/no-go.
+- **Run `pre-commit run --all-files` before pushing** where the repo has a `.pre-commit-config.yaml`. CI runs the same checks.
+- **Put the evidence CI can't produce in the PR body.** CI has no access to the LAN, so it only checks code statically. Paste what you verified locally: the `tofu plan` summary for `01-opentofu` changes, `--check --diff` output for Ansible, the rendered manifest diff for Argo CD.
+- **Watch CI after opening a PR** and fix failures before handing back. Don't hand back a PR with red checks without saying why.
+- **Submodules:** open and get the submodule PR merged first, then open a PR here that bumps the pointer. The `submodules` check fails if a pointer names a commit that isn't on that repo's `main`.
+- **Don't apply or run against live infrastructure** (`tofu apply`, playbooks without `--check`) as part of a PR; that still needs explicit confirmation (see [01-opentofu/AGENTS.md](01-opentofu/AGENTS.md)).
 - **No `Co-Authored-By` trailer** (or any other AI attribution line) in commit messages or PR descriptions.

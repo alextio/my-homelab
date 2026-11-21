@@ -1,0 +1,25 @@
+# Same checks CI runs, so they fail before a push instead of after.
+#   uv tool install pre-commit && pre-commit install
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: [--allow-multiple-documents]
+        # cloud-init files are tofu templates (%{ for }), not plain YAML
+        exclude: (\.tftpl$|/cloud-init/)
+      - id: check-merge-conflict
+      - id: detect-private-key
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.28.0
+    hooks:
+      - id: gitleaks
+  - repo: local
+    hooks:
+      - id: tofu-fmt
+        name: tofu fmt
+        entry: tofu fmt -check -diff
+        language: system
+        files: \.tf$

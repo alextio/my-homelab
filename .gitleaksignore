@@ -1,0 +1,2 @@
+# Bitwarden secret IDs: pointers to a secret, not the value (reading it needs a BWS access token)
+9b8a35b472915751aa52e44cafe010e3b068b79c:.devcontainer/compose.yaml:generic-api-key:29

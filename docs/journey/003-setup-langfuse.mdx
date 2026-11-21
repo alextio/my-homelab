@@ -38,10 +38,10 @@ helm repo update
 ```
 
 
-2. Configure `values.yaml` 
+2. Configure `values.yaml`
 Since I'm deploying this locally on a virtualized k3s cluster, I just want a minimal setup that's not too hard on resources.
 By default, the helm chart will deploy the full [langfuse architecture](https://langfuse.com/self-hosting#architecture). This means, it will deploy its own PostgreSQL, Redis cache, ClickHouse, S3 bucket alongside its application containers.
-We can use the [minimal example](https://github.com/langfuse/langfuse-k8s/tree/main/examples/minimal-installation). The minimal example requires both cert-manager and clickhouse-operator to be up-and-running. 
+We can use the [minimal example](https://github.com/langfuse/langfuse-k8s/tree/main/examples/minimal-installation). The minimal example requires both cert-manager and clickhouse-operator to be up-and-running.
 
 
 https://langfuse.com/self-hosting/deployment/kubernetes-helm
@@ -61,5 +61,5 @@ helm install openlit openlit/openlit
 ``` -->
 
 # Installing Phoenix
-The problem with Langfuse is that it's a huge multi-component deployment. I just want something lighter. 
+The problem with Langfuse is that it's a huge multi-component deployment. I just want something lighter.
 Since AgentGateway can emit OTLP output, we should be able to swap out Langfuse with Arize Phoenix

@@ -9,15 +9,8 @@ variable "proxmox_username" {
   default     = "tofu@pve"
 }
 
-variable "proxmox_password" {
-  description = "Proxmox API password"
-  type        = string
-  sensitive   = true
-  default     = null
-}
-
 variable "proxmox_api_token" {
-  description = "Proxmox API token (alternative to password, format: user@realm!tokenid=secret)"
+  description = "Proxmox API token (format: user@realm!tokenid=secret)"
   type        = string
   sensitive   = true
   default     = null
@@ -155,6 +148,11 @@ variable "vms" {
     condition     = alltrue([for vm in values(var.vms) : !vm.lan_isolated || vm.ip_address != null])
     error_message = "vms[*].lan_isolated needs a static ip_address (the firewall's IP filter pins it)."
   }
+
+  validation {
+    condition     = alltrue([for vm in values(var.vms) : vm.vm_id >= 1000])
+    error_message = "vms[*].vm_id must be 1000 or higher (100-999 is reserved for LXCs)."
+  }
 }
 
 variable "lan_isolated_allow" {
@@ -239,6 +237,11 @@ variable "lxcs" {
     })), [])
   }))
   default = {}
+
+  validation {
+    condition     = alltrue([for ct in values(var.lxcs) : ct.vm_id >= 100 && ct.vm_id <= 999])
+    error_message = "lxcs[*].vm_id must be between 100 and 999 (1000+ is reserved for VMs)."
+  }
 }
 
 variable "dir_mappings" {

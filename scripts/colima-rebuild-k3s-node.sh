@@ -16,4 +16,3 @@ echo "Bootstrapping Colima k3s cluster..."
 colima start --kubernetes --runtime containerd --cpu 4 --memory 8 --disk 60 \
   --k3s-arg=--disable=traefik \
   --k3s-arg=--disable=servicelb
-
