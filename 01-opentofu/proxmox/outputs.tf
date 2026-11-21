@@ -13,6 +13,16 @@ output "cloud_image_id" {
   value       = proxmox_download_file.ubuntu_cloud_image.id
 }
 
+output "debian_template_vm_id" {
+  description = "VM ID of the Debian 13 cloud-init template"
+  value       = proxmox_virtual_environment_vm.debian_template.vm_id
+}
+
+output "debian_cloud_image_id" {
+  description = "Proxmox file ID of the downloaded Debian 13 cloud image"
+  value       = proxmox_download_file.debian_cloud_image.id
+}
+
 output "vm_ips" {
   description = "IP addresses of cloned VMs (populated once VMs are running)"
   value = {

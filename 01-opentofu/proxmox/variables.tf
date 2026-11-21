@@ -87,6 +87,30 @@ variable "cloud_init_file" {
   type        = string
 }
 
+variable "debian_template_vm_id" {
+  description = "VM ID for the Debian 13 template"
+  type        = number
+  default     = 9001
+}
+
+variable "debian_template_name" {
+  description = "Name for the Debian 13 cloud-init template"
+  type        = string
+  default     = "debian-13-cloud-init"
+}
+
+variable "debian_template_disk_size" {
+  description = "Debian template disk size in GB. Keep it small: clones can't be smaller than this."
+  type        = number
+  default     = 20
+}
+
+variable "debian_cloud_init_file" {
+  description = "Cloud-init user-data template for Debian VMs, relative to the cloud-init/ directory"
+  type        = string
+  default     = "debian-13-cloud-init.yaml"
+}
+
 variable "timezone" {
   description = "Timezone for the VM (e.g. America/New_York)"
   type        = string
@@ -111,9 +135,46 @@ variable "vms" {
     ansible_groups = optional(list(string), [])
     full_clone     = optional(bool, false)
     virtiofs       = optional(list(string), [])
-    ip_address     = optional(string) # CIDR, e.g. "192.168.4.50/22"; unset = DHCP
+    ip_address     = optional(string)           # CIDR, e.g. "192.168.4.50/22"; unset = DHCP
+    template       = optional(string, "ubuntu") # "ubuntu" or "debian"
+    dns_servers    = optional(list(string), []) # unset = the Proxmox host's resolvers
+    # Proxmox firewall for VMs that run untrusted code (agents): no outbound
+    # connections to private ranges (the LAN, the cluster, Tailscale) except
+    # lan_isolated_allow. Incoming traffic isn't filtered. See firewall.tf.
+    # Needs a static ip_address.
+    lan_isolated = optional(bool, false)
   }))
   default = {}
+
+  validation {
+    condition     = alltrue([for vm in values(var.vms) : contains(["ubuntu", "debian"], vm.template)])
+    error_message = "vms[*].template must be \"ubuntu\" or \"debian\"."
+  }
+
+  validation {
+    condition     = alltrue([for vm in values(var.vms) : !vm.lan_isolated || vm.ip_address != null])
+    error_message = "vms[*].lan_isolated needs a static ip_address (the firewall's IP filter pins it)."
+  }
+}
+
+variable "lan_isolated_allow" {
+  description = <<-EOT
+    The only private destinations lan_isolated VMs may connect to, in order.
+    The cluster is reachable only through agentgateway: not Traefik (*.lan
+    services), node IPs, Service IPs or other MetalLB IPs.
+    Each entry is a Proxmox macro (e.g. "DNS", "HTTPS") or proto + dport.
+  EOT
+  type = list(object({
+    dest    = string
+    macro   = optional(string)
+    proto   = optional(string)
+    dport   = optional(string)
+    comment = string
+  }))
+  default = [
+    { dest = "192.168.6.201", macro = "DNS", comment = "AdGuard Home (k3s, MetalLB): DNS only" },
+    { dest = "192.168.6.202", macro = "HTTPS", comment = "agentgateway (agentgateway.lan)" },
+  ]
 }
 
 variable "vm_gateway" {
@@ -152,7 +213,7 @@ variable "lxc_template_file_name" {
 variable "lxcs" {
   description = "Map of LXC containers to create. Set to {} to skip."
   type = map(object({
-    vm_id          = number
+    vm_id = number
     # Static address in CIDR form, e.g. "192.168.5.110/24"
     ip_address     = string
     cores          = optional(number, 1)
