@@ -8,6 +8,11 @@ proxmox_username = "root@pam"
 # proxmox_password  = "your-password"
 proxmox_api_token = "root@pam!tofu=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 
+# In the devcontainer, go through bws-broker instead: it adds the real token
+# from Bitwarden, so this file only holds a placeholder.
+# proxmox_endpoint  = "https://bws-broker:8006/"
+# proxmox_api_token = "tofu@pve!tofu=00000000-0000-0000-0000-000000000000"
+
 node_name        = "pve"
 disk_storage     = "local-lvm"
 snippets_storage = "local"
@@ -24,6 +29,10 @@ ssh_public_key = "ssh-ed25519 AAAA... you@host"
 # vms = {
 #   "server-1" = { vm_id = 1001, ansible_groups = ["k3s_server"] }
 #   "agent-1"  = { vm_id = 1002, max_memory = 4096, ansible_groups = ["k3s_agent"] }
+#   # Debian 13 instead of Ubuntu (template + cloud-init file switch together)
+#   "podman-1" = { vm_id = 1003, template = "debian" }
+#   # Agent workspace VM: rootless Podman as a Docker drop-in, via Ansible
+#   "coder-1"  = { vm_id = 1004, template = "debian", cores = 4, max_memory = 12288, disk_gb = 150, ansible_groups = ["podman_docker"] }
 # }
 
 # Optional: define LXC containers

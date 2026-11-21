@@ -4,6 +4,12 @@
 #
 # Needs podman-compose as the compose provider: the token is an external
 # Podman secret, which docker-compose only supports with Swarm.
+
+# Fixed project name, so containers and images are named my-homelab_<service>
+# no matter which folder this is checked out in. initializeCommand in
+# devcontainer.json builds the broker under the same name.
+name: my-homelab
+
 services:
   devcontainer:
     build:

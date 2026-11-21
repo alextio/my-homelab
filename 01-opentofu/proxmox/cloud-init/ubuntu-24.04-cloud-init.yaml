@@ -52,6 +52,15 @@ write_files:
       APT::Periodic::AutocleanInterval "7";
     permissions: "0644"
 
+%{ if length(virtiofs_mounts) > 0 ~}
+# Host directories shared via virtiofs (Proxmox directory mappings).
+# Mounted at /mnt/<name>; nofail keeps boot going if a share is missing.
+mounts:
+%{ for name in virtiofs_mounts ~}
+  - ["${name}", "/mnt/${name}", "virtiofs", "defaults,nofail", "0", "0"]
+%{ endfor ~}
+%{ endif ~}
+
 # ---------------------------------------------------------------------------
 # Run commands on first boot
 # ---------------------------------------------------------------------------

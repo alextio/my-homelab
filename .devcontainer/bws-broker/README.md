@@ -61,8 +61,10 @@ without handing it out. Configured in [`../compose.yaml`](../compose.yaml):
   self-signed, made at startup in `/tmp`, so OpenTofu runs with
   `insecure = true`. Only the placeholder token crosses this hop.
 - **Allowed paths:** `/version`, `/cluster/*` and `/nodes/*`, plus `GET
-  /pools*`. Refused: `/access/*` (users, tokens, ACLs), `/storage/*`, consoles
-  and shells (`termproxy`, `vncproxy`, `spiceproxy`, ...), migration tunnels,
+  /pools*`, `GET /storage` and `GET /storage/<id>` (storage definitions;
+  bpg reads one before uploads). Refused: `/access/*` (users, tokens, ACLs),
+  `/storage` writes, consoles and shells (`termproxy`, `vncproxy`, `spiceproxy`, ...),
+  migration tunnels,
   the batch `nodes/*/execute` call, and guest agent `exec`/`file-read`/
   `file-write`/`set-user-password`. Paths are checked after URL-decoding, and
   `..` segments are refused.
@@ -103,7 +105,13 @@ first, and stops both when VS Code closes (`shutdownAction: stopCompose`).
    security find-generic-password -a "$USER" -s bws-access-token -w | podman secret create --replace bws_access_token -
    ```
    Without it the compose project, and so the devcontainer, won't start.
-3. Rebuild or reopen the devcontainer.
+3. Rebuild or reopen the devcontainer. `initializeCommand` in
+   `devcontainer.json` rebuilds the broker image on the host first
+   (`podman-compose -p my-homelab ... build bws-broker`), so a
+   change to `server.py` or the `Containerfile` takes effect on the next
+   rebuild. The `-p` name must match `name:` in `compose.yaml`, which pins
+   the project the devcontainer runs in; otherwise the fresh image gets a
+   different name and isn't used.
 
 Check from inside the devcontainer:
 
@@ -134,6 +142,8 @@ container is recreated.
   decides what runs on the host (build contexts, mounts, privileges) and
   `server.py` runs with the token. A change made from inside the
   devcontainer (for example by an agent) takes effect at the next rebuild.
+  `initializeCommand` in `devcontainer.json` is a shell command that runs
+  on the host itself, as you, on every open or rebuild.
   Review `git diff .devcontainer` before rebuilding.
 - **Writes are allowed.** Anything in the devcontainer can create secrets, or
   overwrite them unless `BWS_BROKER_ALLOW_EDIT=0`. Limit the machine account
