@@ -4,8 +4,7 @@
 proxmox_endpoint = "https://192.168.1.10:8006/"
 proxmox_username = "root@pam"
 
-# Use either password or API token (token preferred)
-# proxmox_password  = "your-password"
+# API token (the provider only uses token auth)
 proxmox_api_token = "root@pam!tofu=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 
 # In the devcontainer, go through bws-broker instead: it adds the real token
