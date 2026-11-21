@@ -19,6 +19,18 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the repository layout.
 
 When the user says "make sure ..." (e.g. "make sure to not default to X"), treat it as a durable rule: add it as an instruction to the relevant `AGENTS.md` in addition to doing what was asked.
 
+## Surface security risks
+
+Whenever the user is considering a change to a service or the cluster (a proposal, a question like "how can I…", or a request to do it), name its security consequences before or alongside the how, not after it's done. The user may not see them otherwise. In particular, call out:
+
+- **Removed or weakened authentication**: what becomes reachable without a login, and from where (the LAN, any pod in the cluster, a Coder workspace).
+- **Bypass paths**: a service protected only at the ingress (Traefik, oauth2-proxy) is still open to anything that can reach its Service directly.
+- **Who gets what access**: e.g. oauth2-proxy lets every Dex user through, so adding a Dex user grants access to every service behind it.
+- **Where secrets and keys live**: new copies of a credential or private key (Bitwarden, Git, another cluster), and who can read them.
+- **Blast radius**: what an attacker could do with the thing being exposed (a CA key can mint trusted certs for every device; an admin UI can change DNS for the whole network).
+
+Say how big the risk is and what would mitigate it. Keep it short, and don't block on it: the user decides.
+
 ## Git Commit Messages
 
 See [./docs/git-commit-messages.md](docs/git-commit-messages.md).
