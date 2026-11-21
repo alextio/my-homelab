@@ -51,6 +51,15 @@ Finished work moves to [docs/journey/](../journey/).
   (2.1.112, the last release that runs on the Athlon II) from
   `host_vars/coder-1/vars.yml` (`02-ansible`). Waits on new hardware.
   from: [T3 Code on coder-1](../journey/20261121-t3code-on-coder-1.md)
+- **Restrict the dev container's tailnet node to the phone.** Tag it
+  `tag:devcontainer` and grant only the phone's address on 443, with
+  `tests`. Until then any tailnet device can try to pair with its T3
+  server. Waits on the Headscale decision; the policy snippet is in
+  `.devcontainer/AGENTS.md`.
+  from: [T3 Code over Tailscale](../journey/20261121-t3code-over-tailscale-in-devcontainer.md)
+- **Replace Tailscale's control plane with Headscale.** Self-hosted, so the
+  tailnet policy can live in Git. Not designed yet.
+  from: [T3 Code over Tailscale](../journey/20261121-t3code-over-tailscale-in-devcontainer.md)
 - **If Coder comes back:** a workspace node needs `node-taint` /
   `node-label` in its k3s config, and its old `.node-password.k3s` entry
   deleted. `templates push` needs a Coder owner or template admin.
@@ -67,8 +76,13 @@ Finished work moves to [docs/journey/](../journey/).
   (parent repo), then bump the submodules in the parent repo.
 - **Rebuild and verify the dev container** with `devcontainer up`
   (`.devcontainer/AGENTS.md`): check `echo $LOGNAME $LANG` prints
-  `vscode C.UTF-8` and that `start-t3.sh` started `t3 serve`.
-  from: [T3 Code on coder-1](../journey/20261121-t3code-on-coder-1.md)
+  `vscode C.UTF-8`, that `start-t3.sh` started `t3 serve`, and that
+  `install-tailscale.sh` and `start-tailscale.sh` ran.
+  from: [T3 Code on coder-1](../journey/20261121-t3code-on-coder-1.md),
+  [T3 Code over Tailscale](../journey/20261121-t3code-over-tailscale-in-devcontainer.md)
+- **Log the dev container in to Tailscale again before 2027-05-20**, when
+  its untagged node key expires (or tag it).
+  from: [T3 Code over Tailscale](../journey/20261121-t3code-over-tailscale-in-devcontainer.md)
 - **Finish the T3 providers on coder-1.** Enable Pi in the T3 app, log in
   to pi (`/login`) and Claude Code (`claude auth login`), and check T3
   works with Claude Code 2.1.112.
