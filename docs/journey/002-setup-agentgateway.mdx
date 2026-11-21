@@ -40,7 +40,7 @@ agentgateway-proxy   LoadBalancer   10.43.182.220   <pending>     80:32319/TCP  
 The problem is that the default AgentGateway manifest I applied creates a Service named `agentgateway-proxy` of type `LoadBalancer`, exposed on port 80. On default k3s, `LoadBalancer` Services are handled by the built-in ServiceLB, which forwards the Service's listening port directly on the node. Traefik, the default ingress controller in k3s, already claims port 80 and 443 on every node (via `svclb-traefik` pods created by ServiceLB). This port collision means the `svclb-agentgateway-proxy` pods can't bind to the node's port 80, so the scheduler leaves them in `Pending`. You can see the stuck Service pod by running:
 ```bash
 kubectl get pods -n kube-system -l svccontroller.k3s.cattle.io/svcname=agentgateway-proxy
-kubectl describe pod -n kube-system <svclb-agentgateway-proxy-####>  
+kubectl describe pod -n kube-system <svclb-agentgateway-proxy-####>
 ```
 
 ```
@@ -51,19 +51,19 @@ Events:
   Warning  FailedScheduling  29m (x6 over 3h58m)  default-scheduler  0/1 nodes are available: 1 node(s) didn't have free ports for the requested pod ports. no new claims to deallocate, preemption: 0/1 nodes are available: 1 node(s) didn't have free ports for the requested pod ports.
 ```
 
-Load balancers and traffic routing deserves its own article, which we will get to in the next one, but for now, just know that for each `LoadBalancer` Service, ServiceLB runs a `DaemonSet` of `svclb-*` pods that claim the Service's ports on every node and forwards the incoming traffic to the Service's ClusterIP. 
+Load balancers and traffic routing deserves its own article, which we will get to in the next one, but for now, just know that for each `LoadBalancer` Service, ServiceLB runs a `DaemonSet` of `svclb-*` pods that claim the Service's ports on every node and forwards the incoming traffic to the Service's ClusterIP.
 
 ### Solution
-For now, we'll change the listening port to something other than 80. For example, I'll change mine to 8025. 
+For now, we'll change the listening port to something other than 80. For example, I'll change mine to 8025.
 <!-- git diff of the gateway.yaml manifest -->
 
-Now you can see we finally have agentgateway set up and listening on port 8025. 
+Now you can see we finally have agentgateway set up and listening on port 8025.
 <!-- bash command and output showing successful pod and service allocation -->
 
-But we get a 404 when trying to direct some traffic to it. That's because we haven't yet set up an `HTTPRoute` that points to a backend service. 
+But we get a 404 when trying to direct some traffic to it. That's because we haven't yet set up an `HTTPRoute` that points to a backend service.
 
 ## Second thing: Accessing the admin dashboard
-Agentgateway comes with an admin dashboard that lives on port 15000. We can't reach this port through the service that we have. Instead, we can just port-forward for now. Later on, we'll see how to set this up with an actual private domain name. 
+Agentgateway comes with an admin dashboard that lives on port 15000. We can't reach this port through the service that we have. Instead, we can just port-forward for now. Later on, we'll see how to set this up with an actual private domain name.
 ```bash
 kubectl -n agentgateway-system get deploy agentgateway-proxy -o yaml # check the exact port that the dashboard is on
 kubectl -n  agentgateway-system port-forward deploy/agentgateway-proxy 15000
@@ -87,8 +87,8 @@ claude -p "Hello" # check the agentgateway dashboard to see if this gets routed
 https://agentgateway.dev/docs/standalone/latest/documentation/setup/ui/secure-ui/
 
 
-## Saving LLM sessions 
-Wouldn't it be great if we can use our proxy to capture all our chat sessions for later review? 
+## Saving LLM sessions
+Wouldn't it be great if we can use our proxy to capture all our chat sessions for later review?
 
 ## References
 - https://medium.com/google-cloud/whats-up-with-the-kubernetes-agent-gateway-b831b66af31f

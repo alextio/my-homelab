@@ -20,7 +20,7 @@ devcontainer exec --workspace-folder . bash -c "
 "
 ```
 
-Both lines must print `OK`. 
+Both lines must print `OK`.
 
 ## Base image changes
 
