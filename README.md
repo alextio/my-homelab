@@ -33,4 +33,4 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full layout.
 
 ### :handshake: Thanks
 
-A lot of inspiration for this repo comes from [bjw-s/home-ops](https://github.com/bjw-s-labs/home-ops), the [Home Operations](https://discord.gg/home-operations) Discord community, and everyone sharing their clusters under the [k8s-at-home](https://github.com/topics/k8s-at-home) GitHub topic. Be sure to check out [Kubesearch](https://kubesearch.dev) for ideas on what to deploy and how.
+A lot of inspiration for this repo comes from [bjw-s/home-ops](https://github.com/bjw-s-labs/home-ops), [Taegost/homelab-k8s](https://github.com/Taegost/homelab-k8s), the [Home Operations](https://discord.gg/home-operations) Discord community, and everyone sharing their clusters under the [k8s-at-home](https://github.com/topics/k8s-at-home) GitHub topic. Be sure to check out [Kubesearch](https://kubesearch.dev) for ideas on what to deploy and how.
