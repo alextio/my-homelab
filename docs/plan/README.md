@@ -67,13 +67,9 @@ Finished work moves to [docs/journey/](../journey/).
 
 ## Housekeeping
 
-- **Merge `chore/agentgateway-scale-to-zero`** (`03-argocd-kubernetes`).
-  Then check that `kubectl -n agentgateway get deploy agentgateway-proxy`
-  shows `0/0`. The controller's handling of `replicas: 0` is untested.
-- **Merge `chore/coder-scale-to-zero`** (`03-argocd-kubernetes`). Coder
-  keeps running until it is merged.
-- **Merge `refactor/roles`** (`02-ansible`) and `feat/coder-1-agent-vm`
-  (parent repo), then bump the submodules in the parent repo.
+- **Push `main` in `02-ansible` and the parent repo.** Both were merged
+  locally (`02-ansible` `5731df8`, which also takes in the remote's
+  `712fc52`) and aren't on their remotes yet.
 - **Rebuild and verify the dev container** with `devcontainer up`
   (`.devcontainer/AGENTS.md`): check `echo $LOGNAME $LANG` prints
   `vscode C.UTF-8`, that `start-t3.sh` started `t3 serve`, and that
@@ -90,5 +86,6 @@ Finished work moves to [docs/journey/](../journey/).
 - **Suspend or delete Coder's `a` account**, if it isn't done yet.
 - **Delete the two Bitwarden secrets** for the old coder-1 `coder` user.
   Nothing has read them since PR #5.
-- **Check Coder's HTTPRoute**, which showed OutOfSync in Argo CD. It's
-  unknown whether it was OutOfSync before.
+- **Check Coder's HTTPRoutes** (`coder` and `coder-lan`), which stay
+  OutOfSync in Argo CD, including after Coder was scaled to zero. It's
+  unknown whether they were OutOfSync before.
