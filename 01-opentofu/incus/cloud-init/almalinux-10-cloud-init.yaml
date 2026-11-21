@@ -1,0 +1,95 @@
+#cloud-config
+
+# AlmaLinux 10, images:almalinux/10/cloud. Intended as the host for
+# Coder-provisioned workspace containers. Same OS bootstrap as the Debian and
+# Ubuntu files, adapted for EL: wheel instead of sudo, dnf-automatic instead of
+# unattended-upgrades, EPEL for extras, sshd (not ssh) as the service name.
+# The container runtime (Podman as a Docker drop-in, 02-ansible/playbooks/
+# podman-docker) and the Coder connection are Ansible's job, as with the
+# other hosts.
+
+hostname: ${hostname}
+manage_etc_hosts: true
+
+# ---------------------------------------------------------------------------
+# User configuration
+# ---------------------------------------------------------------------------
+users:
+  - name: user
+    gecos: Cloud-init User
+    groups: [wheel, adm]
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    lock_passwd: true
+    ssh_authorized_keys:
+      - ${ssh_public_key}
+
+# Disable root login and password auth — key-only access
+disable_root: true
+
+ssh_pwauth: false
+
+# ---------------------------------------------------------------------------
+# Packages
+# Only BaseOS/AppStream packages here: cloud-init installs this list in one
+# dnf transaction, before EPEL exists. EPEL extras go in runcmd below.
+# ---------------------------------------------------------------------------
+package_update: true
+package_upgrade: true
+package_reboot_if_required: true
+
+packages:
+  - epel-release
+  - dnf-automatic
+  - curl
+  - wget
+  - git
+  - vim-enhanced
+  - jq
+  # SELinux stays enforcing; these make denials readable (audit2why, sealert-lite)
+  - policycoreutils-python-utils
+
+# ---------------------------------------------------------------------------
+# System configuration
+# ---------------------------------------------------------------------------
+timezone: ${timezone}
+
+write_files:
+  # Apply security updates automatically (equivalent of 20auto-upgrades)
+  - path: /etc/dnf/automatic.conf
+    content: |
+      [commands]
+      upgrade_type = security
+      apply_updates = yes
+      reboot = never
+      [emitters]
+      emit_via = stdio
+    permissions: "0644"
+
+  # sshd uses the first value it sees, and RHEL ships 50-redhat.conf, so this
+  # must sort before it. Drop-ins are safer than sed on EL's sshd_config.
+  - path: /etc/ssh/sshd_config.d/00-hardening.conf
+    content: |
+      PermitRootLogin no
+      PasswordAuthentication no
+      KbdInteractiveAuthentication no
+      PubkeyAuthentication yes
+    permissions: "0600"
+
+# ---------------------------------------------------------------------------
+# Run commands on first boot
+# ---------------------------------------------------------------------------
+runcmd:
+  # EPEL packages (need CRB for some dependencies)
+  - crb enable
+  - dnf install -y htop
+
+  - systemctl enable --now dnf-automatic.timer
+  - systemctl restart sshd
+
+# ---------------------------------------------------------------------------
+# Final message
+# ---------------------------------------------------------------------------
+final_message: |
+  Cloud-init setup complete after $UPTIME seconds.
+  Machine is now ready.

@@ -1,0 +1,35 @@
+# Copy to terraform.tfvars and fill in your values.
+# Never commit terraform.tfvars.
+
+incus_address = "https://192.168.4.111:8443"
+# Plain Incus only, first run: token from `incus config trust add tofu`
+# incus_trust_token = "eyJ..."
+
+storage_pool = "local" # IncusOS default; plain Incus is usually "default"
+bridge       = "br0"   # LAN bridge on the host — check `incus network list`
+gateway      = "192.168.4.1"
+dns_servers  = ["192.168.4.1"]
+timezone     = "America/New_York"
+
+ssh_public_key = "ssh-ed25519 AAAA... you@host"
+
+# Optional: shared volumes (replaces Proxmox dir mappings / bind mounts)
+# storage_volumes = { "media" = 200 }
+
+# Optional: VMs. Software config (k3s etc.) is handled by Ansible;
+# ansible_groups feeds the `inventory` output.
+# vms = {
+#   "server-1" = { ansible_groups = ["k3s_server"] }
+#   "agent-1"  = { memory = 4096, ansible_groups = ["k3s_agent"] }
+#   "podman-1" = { os = "debian", ip_address = "192.168.4.50/22" }
+#   "media-1"  = { volumes = [{ name = "media", path = "/srv/media" }] }
+#   # AlmaLinux host for Coder workspace containers (Podman as a Docker drop-in, via Ansible)
+#   "coder-1"  = { os = "alma", cores = 4, memory = 8192, disk_gb = 100, ansible_groups = ["podman_docker"] }
+# }
+
+# Optional: system containers
+# lxcs = {
+#   "dns-1"     = { ip_address = "192.168.5.101/22", ansible_groups = ["dns"] }
+#   "docker-1"  = { ip_address = "192.168.5.102/22", memory = 2048, disk_gb = 16, nesting = true }
+#   "tailscale" = { ip_address = "192.168.5.111/22", devices = ["/dev/net/tun"] }
+# }

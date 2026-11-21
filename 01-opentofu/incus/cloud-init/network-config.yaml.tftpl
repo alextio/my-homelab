@@ -1,0 +1,17 @@
+version: 2
+ethernets:
+  lan:
+    # VMs see enp5s0, containers see eth0
+    match:
+      name: "e*"
+%{ if ip_address == null ~}
+    dhcp4: true
+%{ else ~}
+    addresses:
+      - ${ip_address}
+    routes:
+      - to: default
+        via: ${gateway}
+    nameservers:
+      addresses: [${join(", ", dns_servers)}]
+%{ endif ~}

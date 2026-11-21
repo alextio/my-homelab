@@ -22,6 +22,7 @@ Each layer only provisions what the next one needs. OpenTofu stops at "VM with S
 | Path | Role | Notes |
 |------|------|-------|
 | [01-opentofu/proxmox/](01-opentofu/proxmox/) | Downloads the Ubuntu 24.04 cloud image, builds a template VM (ID 9000), clones VMs and creates LXCs | Local state. See its [README](01-opentofu/proxmox/README.md) |
+| [01-opentofu/incus/](01-opentofu/incus/) | Alternative to `proxmox/`: creates VMs and containers from `images:` cloud images on Incus or IncusOS | Local state. See its [README](01-opentofu/incus/README.md) |
 | [02-ansible/](02-ansible/) | Per-tool playbooks (`playbooks/<tool>/sync.yml`); `k3s-argocd` bootstraps k3s and installs Argo CD | Submodule |
 | [03-argocd-kubernetes/](03-argocd-kubernetes/) | GitOps repo: `app-of-apps.yaml` plus `manifests/` and `apps/` | Submodule. See its [README](03-argocd-kubernetes/README.md) |
 | [scripts/](scripts/) | One-off helpers: Proxmox user permissions, k3sup/flux bootstrap, Colima k3s node | Not part of the main flow |

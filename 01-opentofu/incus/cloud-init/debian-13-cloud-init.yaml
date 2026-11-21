@@ -1,0 +1,74 @@
+#cloud-config
+
+# Debian 13 (trixie), images:debian/13/cloud. Same OS bootstrap as the Ubuntu file;
+# container runtime (Podman) and everything else is Ansible's job.
+
+hostname: ${hostname}
+manage_etc_hosts: true
+
+# ---------------------------------------------------------------------------
+# User configuration
+# ---------------------------------------------------------------------------
+users:
+  - name: user
+    gecos: Cloud-init User
+    groups: [sudo, adm]
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    lock_passwd: true
+    ssh_authorized_keys:
+      - ${ssh_public_key}
+
+# Disable root login and password auth — key-only access
+disable_root: true
+
+ssh_pwauth: false
+
+# ---------------------------------------------------------------------------
+# Packages
+# ---------------------------------------------------------------------------
+package_update: true
+package_upgrade: true
+package_reboot_if_required: true
+
+packages:
+  - curl
+  - wget
+  - git
+  - vim
+  - htop
+  - jq
+  - unattended-upgrades
+
+# ---------------------------------------------------------------------------
+# System configuration
+# ---------------------------------------------------------------------------
+timezone: ${timezone}
+
+# Enable unattended security upgrades
+write_files:
+  - path: /etc/apt/apt.conf.d/20auto-upgrades
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+      APT::Periodic::AutocleanInterval "7";
+    permissions: "0644"
+
+# ---------------------------------------------------------------------------
+# Run commands on first boot
+# ---------------------------------------------------------------------------
+runcmd:
+
+  # Harden SSH
+  - sed -i 's/^#*PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
+  - sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
+  - sed -i 's/^#*PubkeyAuthentication.*/PubkeyAuthentication yes/' /etc/ssh/sshd_config
+  - systemctl restart ssh
+
+
+# ---------------------------------------------------------------------------
+# Final message
+# ---------------------------------------------------------------------------
+final_message: |
+  Cloud-init setup complete after $UPTIME seconds.
+  Machine is now ready.
