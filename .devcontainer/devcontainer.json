@@ -1,6 +1,7 @@
 {
   "name": "${localWorkspaceFolderBasename}",
   "dockerComposeFile": "compose.yaml",
+  "initializeCommand": "podman-compose -p my-homelab -f .devcontainer/compose.yaml build bws-broker",
   "service": "devcontainer",
   "runServices": ["devcontainer", "bws-broker"],
   "workspaceFolder": "/workspace",
@@ -22,6 +23,12 @@
     "ghcr.io/devcontainers/features/github-cli:1.1.3": {}
   },
   "postCreateCommand": "for f in .devcontainer/scripts/post-create/*.sh; do echo \">>> $f\"; bash \"$f\" || { echo \"FAILED: $f\"; exit 1; }; done",
+  "postStartCommand": "for f in .devcontainer/scripts/post-start/*.sh; do echo \">>> $f\"; bash \"$f\" || echo \"FAILED: $f\"; done",
   "remoteUser": "vscode",
+  "remoteEnv": {
+    "LANG": "C.UTF-8",
+    "LOGNAME": "vscode",
+    "USER": "vscode"
+  },
   "shutdownAction": "stopCompose"
 }

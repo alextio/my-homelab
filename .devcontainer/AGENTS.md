@@ -66,7 +66,7 @@ If a feature is needed for something other than home-directory setup (e.g., `com
 The broker also proxies the Proxmox API for OpenTofu on `https://bws-broker:8006/`, adding the real token from Bitwarden (see the README). The same rules apply:
 
 - Don't put the Proxmox API token back in the devcontainer (`terraform.tfvars`, `TF_VAR_*`, env files). `terraform.tfvars` keeps a placeholder token.
-- Don't widen `PVE_ALLOW`/`PVE_ALLOW_READ` or remove `PVE_DENY` entries in `server.py` to reach `/access`, `/storage`, consoles/shells, `execute` or guest-agent exec/file endpoints. If bpg needs a new path, allow the narrowest one and say so.
+- Don't widen `PVE_ALLOW`/`PVE_ALLOW_READ` or remove `PVE_DENY` entries in `server.py` to reach `/access`, `/storage` writes, consoles/shells, `execute` or guest-agent exec/file endpoints. If bpg needs a new path, allow the narrowest one and say so. The `/storage` exceptions are reads only: `GET /storage` (the listing, allowed at the user's request) and `GET /storage/<id>` (bpg reads a datastore before uploading snippets and images).
 - Keep the Proxmox cert pinned (`BWS_BROKER_PVE_FINGERPRINT`); don't replace it with skipping verification.
 - The broker needs outbound access to Proxmox (`192.168.4.111:8006`) as well as Bitwarden; that's expected. Still don't publish its ports or attach it to other networks.
 
@@ -79,6 +79,15 @@ The host enforces SELinux, and each container run gets its own MCS categories. F
 - Check with `ls -Z`. A stuck file can only be removed from the host: `podman unshare rm <volume mountpoint>/<path>`.
 
 The devcontainer is defined in `compose.yaml` (not `build`/`runArgs` in `devcontainer.json`). Its compose provider must be podman-compose, so run `devcontainer up` with `--docker-path podman --docker-compose-path podman-compose`. The home volume is pinned to the name `my-homelab-devcontainer`; keep it, or the existing home directory is lost.
+
+## `remoteEnv` in devcontainer.json
+
+- `LANG=C.UTF-8`: VS Code terminals otherwise inherit the Mac's `en_US.UTF-8`, which the image doesn't have, and Ansible refuses to start ("could not initialize the preferred locale").
+- `LOGNAME`/`USER=vscode`: the shells otherwise get `LOGNAME=root`. Python's `getpass.getuser()` reads `LOGNAME` first, so Ansible's local connection acts as root and fails on `/root/.ansible/tmp`.
+
+## post-start scripts
+
+`postStartCommand` runs every `scripts/post-start/*.sh` on each container start. Unlike post-create, a failing script is reported but doesn't stop the container. There's no systemd in the container, so long-running processes are started with `setsid nohup … &` and a pid file (see `start-t3.sh`), and nothing restarts them if they exit.
 
 ## Binary installation
 

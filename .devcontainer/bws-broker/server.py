@@ -67,10 +67,13 @@ PVE_TIMEOUT = 120
 # without restarting the broker (a 401 from Proxmox also forces a re-read)
 PVE_TOKEN_TTL = 300
 # Top-level API paths the proxy forwards (all that bpg/proxmox needs here).
-# PVE_ALLOW_READ is GET only (bpg lists pools for every VM). /access (users,
-# tokens, ACLs) and /storage (storage definitions) are refused.
+# PVE_ALLOW_READ is GET only: bpg lists pools for every VM, and reads a
+# storage definition (GET /storage/<id>) before uploading a snippet or image.
+# The storage listing (GET /storage) is allowed too. Proxmox leaves stored
+# passwords and keys out of both. /access (users, tokens, ACLs) and any
+# /storage write are refused.
 PVE_ALLOW = re.compile(r"^(version|cluster|nodes)(/|$)")
-PVE_ALLOW_READ = re.compile(r"^pools(/|$)")
+PVE_ALLOW_READ = re.compile(r"^(pools(/|$)|storage(/[^/]+)?$)")
 # Refused even under an allowed prefix: consoles and shells, migration
 # tunnels, the batch API (it would bypass these rules) and guest agent
 # commands that run code or touch files inside a VM.
